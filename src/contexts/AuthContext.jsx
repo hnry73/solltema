@@ -138,7 +138,27 @@ export const AuthProvider = ({ children }) => {
       }
     }
 
-    return data;
+    if (signUpData?.user) {
+      try {
+        const { error: profileError } = await supabase.from('profiles').upsert(
+          {
+            user_id: signUpData.user.id,
+            display_name: normalizedDisplayName || 'Kullanıcı',
+          },
+          {
+            onConflict: 'user_id',
+          }
+        );
+
+        if (profileError) {
+          throw profileError;
+        }
+      } catch (error) {
+        throw normalizeAuthError(error);
+      }
+    }
+
+    return signUpData;
   };
 
   const signIn = async (email, password) => {
